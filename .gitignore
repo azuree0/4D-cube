@@ -1,0 +1,37 @@
+# Build directories
+build/
+cmake-build-*/
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+*.vcxproj
+*.vcxproj.filters
+*.sln
+*.cmake
+!CMakeLists.txt
+
+# Compiled binaries
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+*.lib
+*.obj
+*.o
+
+# IDE files
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.sdf
+*.opensdf
+
+# OS files
+.DS_Store
+Thumbs.db
+
