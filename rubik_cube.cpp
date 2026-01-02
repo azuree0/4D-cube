@@ -1,8 +1,12 @@
+// Rubik's Cube Implementation
+// Contains all rotation logic and cube state management
+
 #include "rubik_cube.h"
 #include <algorithm>
 #include <random>
 #include <ctime>
 
+// Constructor - initialize cube to solved state
 RubikCube::RubikCube() {
     faces.resize(6);
     // Initialize each face with its correct color
@@ -16,8 +20,8 @@ RubikCube::RubikCube() {
     }
 }
 
+// Reset cube to solved state
 void RubikCube::reset() {
-    // Reset each face to its correct color
     int faceColors[] = {RED, ORANGE, WHITE, YELLOW, GREEN, BLUE};
     for (int i = 0; i < 6; i++) {
         for (int j = 0; j < 3; j++) {
@@ -28,8 +32,8 @@ void RubikCube::reset() {
     }
 }
 
+// Rotate a single face 90 degrees clockwise
 void RubikCube::rotateFaceClockwise(int face) {
-    // Rotate the face itself
     std::vector<std::vector<int>> temp(3, std::vector<int>(3));
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
@@ -39,8 +43,8 @@ void RubikCube::rotateFaceClockwise(int face) {
     faces[face] = temp;
 }
 
+// Rotate a single face 90 degrees counter-clockwise
 void RubikCube::rotateFaceCounterClockwise(int face) {
-    // Rotate the face itself
     std::vector<std::vector<int>> temp(3, std::vector<int>(3));
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
@@ -50,10 +54,11 @@ void RubikCube::rotateFaceCounterClockwise(int face) {
     faces[face] = temp;
 }
 
+// Rotate right face clockwise (R move)
 void RubikCube::rotateR() {
     rotateFaceClockwise(RIGHT);
     
-    // Rotate adjacent edges
+    // Rotate adjacent edge pieces
     int temp[3];
     for (int i = 0; i < 3; i++) {
         temp[i] = faces[UP][i][2];
@@ -72,10 +77,11 @@ void RubikCube::rotateR() {
     }
 }
 
+// Rotate left face clockwise (L move)
 void RubikCube::rotateL() {
     rotateFaceClockwise(LEFT);
     
-    // Rotate adjacent edges
+    // Rotate adjacent edge pieces
     int temp[3];
     for (int i = 0; i < 3; i++) {
         temp[i] = faces[UP][i][0];
@@ -94,10 +100,11 @@ void RubikCube::rotateL() {
     }
 }
 
+// Rotate up face clockwise (U move)
 void RubikCube::rotateU() {
     rotateFaceClockwise(UP);
     
-    // Rotate adjacent edges
+    // Rotate adjacent edge pieces
     int temp[3];
     for (int i = 0; i < 3; i++) {
         temp[i] = faces[FRONT][0][i];
@@ -116,10 +123,11 @@ void RubikCube::rotateU() {
     }
 }
 
+// Rotate down face clockwise (D move)
 void RubikCube::rotateD() {
     rotateFaceClockwise(DOWN);
     
-    // Rotate adjacent edges
+    // Rotate adjacent edge pieces
     int temp[3];
     for (int i = 0; i < 3; i++) {
         temp[i] = faces[FRONT][2][i];
@@ -138,10 +146,11 @@ void RubikCube::rotateD() {
     }
 }
 
+// Rotate front face clockwise (F move)
 void RubikCube::rotateF() {
     rotateFaceClockwise(FRONT);
     
-    // Rotate adjacent edges
+    // Rotate adjacent edge pieces
     int temp[3];
     for (int i = 0; i < 3; i++) {
         temp[i] = faces[UP][2][i];
@@ -160,10 +169,11 @@ void RubikCube::rotateF() {
     }
 }
 
+// Rotate back face clockwise (B move)
 void RubikCube::rotateB() {
     rotateFaceClockwise(BACK);
     
-    // Rotate adjacent edges
+    // Rotate adjacent edge pieces
     int temp[3];
     for (int i = 0; i < 3; i++) {
         temp[i] = faces[UP][0][i];
@@ -182,42 +192,37 @@ void RubikCube::rotateB() {
     }
 }
 
+// Rotate right face counter-clockwise (R' move)
 void RubikCube::rotateRPrime() {
-    rotateR();
-    rotateR();
-    rotateR();
+    rotateR(); rotateR(); rotateR();  // Three clockwise = one counter-clockwise
 }
 
+// Rotate left face counter-clockwise (L' move)
 void RubikCube::rotateLPrime() {
-    rotateL();
-    rotateL();
-    rotateL();
+    rotateL(); rotateL(); rotateL();
 }
 
+// Rotate up face counter-clockwise (U' move)
 void RubikCube::rotateUPrime() {
-    rotateU();
-    rotateU();
-    rotateU();
+    rotateU(); rotateU(); rotateU();
 }
 
+// Rotate down face counter-clockwise (D' move)
 void RubikCube::rotateDPrime() {
-    rotateD();
-    rotateD();
-    rotateD();
+    rotateD(); rotateD(); rotateD();
 }
 
+// Rotate front face counter-clockwise (F' move)
 void RubikCube::rotateFPrime() {
-    rotateF();
-    rotateF();
-    rotateF();
+    rotateF(); rotateF(); rotateF();
 }
 
+// Rotate back face counter-clockwise (B' move)
 void RubikCube::rotateBPrime() {
-    rotateB();
-    rotateB();
-    rotateB();
+    rotateB(); rotateB(); rotateB();
 }
 
+// Apply move from standard notation (e.g., "R", "R'", "U")
 bool RubikCube::applyMove(const std::string& move) {
     if (move == "R") {
         rotateR();
@@ -259,6 +264,7 @@ bool RubikCube::applyMove(const std::string& move) {
     return false;
 }
 
+// Scramble cube with random moves
 void RubikCube::scramble(int numMoves) {
     std::vector<std::string> moves = {"R", "R'", "L", "L'", "U", "U'", "D", "D'", "F", "F'", "B", "B'"};
     std::mt19937 rng(static_cast<unsigned int>(std::time(nullptr)));
@@ -269,8 +275,8 @@ void RubikCube::scramble(int numMoves) {
     }
 }
 
+// Check if cube is in solved state
 bool RubikCube::isSolved() const {
-    // Check if each face has uniform color
     int faceColors[] = {RED, ORANGE, WHITE, YELLOW, GREEN, BLUE};
     for (int face = 0; face < 6; face++) {
         int expectedColor = faceColors[face];
@@ -285,10 +291,12 @@ bool RubikCube::isSolved() const {
     return true;
 }
 
+// Get color at specific position
 int RubikCube::getColor(int face, int row, int col) const {
     return faces[face][row][col];
 }
 
+// Get all faces (for rendering)
 const std::vector<std::vector<std::vector<int>>>& RubikCube::getFaces() const {
     return faces;
 }

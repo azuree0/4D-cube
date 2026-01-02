@@ -1,3 +1,6 @@
+// Main Application - SFML window and game loop
+// Handles user input, animations, and rendering coordination
+
 #include <SFML/Graphics.hpp>
 #include <SFML/OpenGL.hpp>
 #include <iostream>
@@ -7,6 +10,7 @@
 constexpr int WINDOW_WIDTH = 1400;
 constexpr int WINDOW_HEIGHT = 1000;
 
+// Main game class - manages cube, renderer, UI, and input
 class RubikGame {
 private:
     RubikCube cube;
@@ -30,7 +34,8 @@ private:
         }
         return true;
     }
-    
+
+ // In game text   
     void setupUI() {
         if (font.getInfo().family != "") {
             statusText.setFont(font);
@@ -41,38 +46,44 @@ private:
             instructionText.setFont(font);
             instructionText.setCharacterSize(18);
             instructionText.setFillColor(sf::Color::White);
-            instructionText.setPosition(10, 40);
+            instructionText.setPosition(10, 50);
             instructionText.setString(
-                "Controls:\n"
                 "Mouse Drag: Rotate camera\n"
                 "Mouse Wheel: Zoom in/out\n"
-                "Q/W/E/R/T/Y: Rotate faces (Right/Left/Up/Down/Front/Back)\n"
+                  "\n"
+                "Q/W/E/R/T/Y: Rotate clockwise\n"
                 "Shift+Q/W/E/R/T/Y: Rotate counter-clockwise\n"
+                  "\n"
                 "S: Scramble\n"
-                "Space: Reset cube\n"
-                "I: Toggle instructions"
+                "Space: Reset\n"
+                "I: Toggle UI"
             );
         }
         updateUI();
     }
-    
+
+// Update UI    
     void updateUI() {
         if (font.getInfo().family == "") return;
         
-        std::string status = "Rubik's Cube";
+        std::string status = "";
         if (cube.isSolved()) {
-            status += " - Solved";
+            status += "Solved";
         }
         statusText.setString(status);
     }
     
+// Constructor, sets up game's initial state.
 public:
     RubikGame() : isDragging(false), showInstructions(true) {
         loadFont();
         setupUI();
         renderer.initialize();
+        cube.scramble();
+        updateUI();
     }
-    
+
+// Animation methods    
     void updateAnimation(float deltaTime) {
         if (!animation.isAnimating) return;
         
@@ -137,6 +148,7 @@ public:
         updateUI();
     }
     
+// Input handling
     void handleKeyPress(sf::Keyboard::Key key) {
         if (animation.isAnimating) return; // Ignore input during animation
         
@@ -201,11 +213,12 @@ public:
         renderer.handleMouseWheel(delta);
     }
     
+    // Render 3D cube and 2D UI overlay
     void render(sf::RenderWindow& window) {
         // Render 3D cube using OpenGL
         renderer.render(cube, window.getSize().x, window.getSize().y, animation);
         
-        // Switch to SFML 2D rendering for UI
+        // Switch to SFML 2D rendering for UI text
         window.pushGLStates();
         
         if (font.getInfo().family != "") {
@@ -220,7 +233,9 @@ public:
     }
 };
 
+// Main entry point - initializes window and runs game loop
 int main() {
+    // Configure OpenGL settings
     sf::ContextSettings settings;
     settings.depthBits = 24;
     settings.stencilBits = 8;
@@ -228,19 +243,19 @@ int main() {
     settings.majorVersion = 2;
     settings.minorVersion = 1;
     
+    // In game, create SFML window with OpenGL context.
     sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), 
-                           "3D Rubik's Cube", 
+                           "Rubik's Cube", 
                            sf::Style::Default, 
                            settings);
     window.setFramerateLimit(60);
     window.setVerticalSyncEnabled(true);
-    
-    // Enable OpenGL context
     window.setActive(true);
     
     RubikGame game;
     sf::Clock frameClock;
     
+    // Main game loop - handle events and render
     while (window.isOpen()) {
         float deltaTime = frameClock.restart().asSeconds();
         

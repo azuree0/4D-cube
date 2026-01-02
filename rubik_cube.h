@@ -1,3 +1,6 @@
+// Rubik's Cube Logic Header
+// Defines the cube data structure and rotation operations
+
 #ifndef RUBIK_CUBE_H
 #define RUBIK_CUBE_H
 
@@ -24,12 +27,13 @@ enum FaceIndex {
     BACK = 5
 };
 
+// Rubik's Cube class - manages cube state and rotations
 class RubikCube {
 private:
-    // 6 faces, each is 3x3
+    // 6 faces, each is 3x3 grid of colors
     std::vector<std::vector<std::vector<int>>> faces;
     
-    // Helper functions for rotations
+    // Helper functions for face and edge rotations
     void rotateFaceClockwise(int face);
     void rotateFaceCounterClockwise(int face);
     void rotateRow(int row, bool clockwise);
@@ -37,12 +41,12 @@ private:
     void rotateDepth(int depth, bool clockwise);
     
 public:
-    RubikCube();
+    RubikCube();  // Constructor - initializes solved cube
     
-    // Initialize solved state
+    // Reset cube to solved state
     void reset();
     
-    // Face rotations: R, L, U, D, F, B (clockwise) and their inverses
+    // Face rotations (clockwise): R, L, U, D, F, B
     void rotateR();  // Right face clockwise
     void rotateL();  // Left face clockwise
     void rotateU();  // Up face clockwise

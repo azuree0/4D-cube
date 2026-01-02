@@ -1,27 +1,20 @@
-## Directory structure
+<img width="1082" height="759" alt="R" src="R.png" />
 
-Rubik (C++)/
-├── main.cpp          # Main application and SFML GUI
-├── rubik_cube.h/cpp  # Rubik's cube logic and rotation mechanics
-├── renderer.h/cpp    # 3D OpenGL rendering system
-├── CMakeLists.txt    # Build configuration
-├── .gitignore        # Git ignore file
-└── README.md         # This file
+<br>
 
-### Prerequisites
+### Install
 
-- CMake 3.15 or later
-- C++17 compatible compiler
-- SFML 2.5 or later
-- OpenGL support
+- **CMake** 3.15 or later - (https://cmake.org/download/)
+- **C++ Compiler** with C++17 support:
+  - [Visual Studio 2019 or later](https://visualstudio.microsoft.com/downloads/)
+  - [MinGW-w64](https://www.mingw-w64.org/downloads/)
+- **SFML 2.5** or later - [Download](https://www.sfml-dev.org/download.php)
+  - Extract to a location (e.g., `C:/SFML`)
+- **OpenGL** support (usually included with graphics drivers)
 
-### Windows Build Instructions
+### Build
 
-1. Install SFML:
-   - Download from https://www.sfml-dev.org/download.php
-   - Extract to a location (e.g., `C:/SFML`)
-
-2. Configure and build:
+1. Configure and build:
    ```bash
    mkdir build
    cd build
@@ -29,26 +22,87 @@ Rubik (C++)/
    cmake --build . --config Release
    ```
 
-3. Copy SFML DLLs (if not already done):
+2. Copy SFML DLLs:
    ```powershell
-   Copy-Item C:\SFML\bin\sfml-*.dll build\Release\
+   Copy-Item C:\SFML\bin\sfml-*.dll .\Release\
    ```
 
-4. Run:
-   ```bash
-   cd build\Release
-   .\RubikGame.exe
-   ```
-   Or from the project root:
-   ```bash
-   .\build\Release\RubikGame.exe
-   ```
+### Run
 
-### Alternative: Using vcpkg
-
-If you have vcpkg installed:
 ```bash
-vcpkg install sfml
-cmake .. -DCMAKE_TOOLCHAIN_FILE=[vcpkg root]/scripts/buildsystems/vcpkg.cmake
+.\Release\RubikGame.exe
+```
+
+### Edit
+
+```bash
 cmake --build . --config Release
+.\Release\RubikGame.exe
+```
+
+<br>
+
+# Game Rules
+
+### Controls
+
+**Camera Movement:**
+- **Mouse Drag**: Rotate camera around the cube
+- **Mouse Wheel**: Zoom in/out
+
+**Cube Rotation:**
+- **Q/W/E/R/T/Y**: Rotate faces clockwise
+  - Q: Right face
+  - W: Left face
+  - E: Up face
+  - R: Down face
+  - T: Front face
+  - Y: Back face
+- **Shift + Q/W/E/R/T/Y**: Rotate faces counter-clockwise
+
+**Game Actions:**
+- **S**: Scramble the cube
+- **Space**: Reset cube to solved state
+- **I**: Toggle instructions display
+
+### Victory
+
+Rotating faces until all 6 sides have same color.
+
+<br>
+
+# History
+
+### Invention (1974)
+- **Ernő Rubik**: Hungarian sculptor and professor of architecture invented the cube in 1974
+- **Original Purpose**: Created as a teaching tool to help students understand 3D spatial relationships
+- **First Name**: Originally called the "Magic Cube" (Bűvös kocka in Hungarian)
+- **Patent**: Rubik applied for a Hungarian patent in 1975
+
+### Modern (1980s-Present)
+- **International Release**: Licensed to Ideal Toy Corp. in 1980, renamed "Rubik's Cube"
+- **Worldwide Phenomenon**: Over 100 million cubes sold in the first two years
+- **Algorithms**: Development of advanced solving methods (CFOP, Roux, ZZ, Petrus)
+- **Digital Versions**: Transition to computer simulations and virtual reality implementations
+
+### Logos
+
+- **Permutations**: The cube has 43,252,003,274,489,856,000 (43 quintillion) possible configurations
+- **God's Number**: Proven in 2010 that any scrambled cube can be solved in 20 moves or fewer
+- **Group Theory**: The cube's mechanics are studied in abstract algebra and group theory
+
+<br>
+
+# Structure
+
+```
+.
+├── CMakeLists.txt       # Build configuration
+├── main.cpp             # Main application and SFML GUI
+├── rubik_cube.h/cpp     # Rubik's cube logic and rotation mechanics
+├── renderer.h/cpp       # 3D OpenGL rendering system
+├── copy_dlls.ps1        # PowerShell script to copy SFML DLLs
+├── .gitignore           # Git ignore file
+├── R.png                # Project logo/image
+└── README.md            # This file
 ```

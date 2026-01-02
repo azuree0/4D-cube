@@ -1,3 +1,6 @@
+// 3D OpenGL Renderer Header
+// Handles 3D rendering of the Rubik's cube with OpenGL
+
 #ifndef RENDERER_H
 #define RENDERER_H
 
@@ -6,7 +9,7 @@
 #include "rubik_cube.h"
 #include <vector>
 
-// Animation state for face rotations
+// Animation state for smooth face rotations
 struct AnimationState {
     int face;           // Which face is rotating (RIGHT, LEFT, UP, DOWN, FRONT, BACK)
     float currentAngle;  // Current rotation angle in degrees
@@ -17,13 +20,14 @@ struct AnimationState {
     AnimationState() : face(-1), currentAngle(0.0f), targetAngle(0.0f), isAnimating(false), clockwise(true) {}
 };
 
+// 3D Renderer class - handles OpenGL rendering and camera control
 class Renderer {
 private:
-    float cameraAngleX;
-    float cameraAngleY;
-    float cameraDistance;
+    float cameraAngleX;   // Vertical camera rotation
+    float cameraAngleY;   // Horizontal camera rotation
+    float cameraDistance; // Distance from cube
     
-    // Color mapping
+    // Color mapping and drawing functions
     void setColor(int faceColor);
     void drawCube(float x, float y, float z, float size);
     void drawFace(float x, float y, float z, float size, int faceIndex, int color);

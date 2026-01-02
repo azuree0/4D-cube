@@ -1,3 +1,6 @@
+// 3D OpenGL Renderer Implementation
+// Handles all OpenGL rendering, camera control, and animation
+
 #include "renderer.h"
 #include <cmath>
 #include <algorithm>
@@ -8,14 +11,15 @@
 #define M_PI 3.14159265358979323846
 #endif
 
+// Constructor - initialize camera position
 Renderer::Renderer() {
     cameraAngleX = 30.0f;
     cameraAngleY = 45.0f;
     cameraDistance = 8.0f;
 }
 
+// Draw starfield background
 void Renderer::drawStars() {
-    // Disable lighting for stars
     glDisable(GL_LIGHTING);
     glDisable(GL_DEPTH_TEST);
     
@@ -61,13 +65,13 @@ void Renderer::drawStars() {
     glEnable(GL_DEPTH_TEST);
 }
 
+// Initialize OpenGL settings and lighting
 void Renderer::initialize() {
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
-    // Disable back-face culling so we can see all faces
-    glDisable(GL_CULL_FACE);
+    glDisable(GL_CULL_FACE);  // Show all faces
     
-    // Enable lighting
+    // Setup lighting
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
     glEnable(GL_COLOR_MATERIAL);
@@ -89,6 +93,7 @@ void Renderer::initialize() {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Black background
 }
 
+// Set OpenGL color based on face color enum
 void Renderer::setColor(int faceColor) {
     switch (faceColor) {
         case WHITE:
@@ -115,6 +120,7 @@ void Renderer::setColor(int faceColor) {
     }
 }
 
+// Draw a single colored face of a cubie
 void Renderer::drawFace(float x, float y, float z, float size, int faceIndex, int color) {
     float s = size / 2.0f;
     float offset = 0.01f; // Small offset to make faces slightly protrude and avoid z-fighting
@@ -175,10 +181,9 @@ void Renderer::drawFace(float x, float y, float z, float size, int faceIndex, in
     glEnd();
 }
 
+// Draw cube edges (black lines)
 void Renderer::drawCube(float x, float y, float z, float size) {
     float s = size / 2.0f;
-    
-    // Draw black edges
     glColor3f(0.1f, 0.1f, 0.1f);
     glLineWidth(2.0f);
     glBegin(GL_LINES);
@@ -205,6 +210,7 @@ void Renderer::drawCube(float x, float y, float z, float size) {
     glEnd();
 }
 
+// Main render function - sets up view and draws entire cube
 void Renderer::render(const RubikCube& cube, int windowWidth, int windowHeight, const AnimationState& anim) {
     glViewport(0, 0, windowWidth, windowHeight);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -263,15 +269,13 @@ void Renderer::render(const RubikCube& cube, int windowWidth, int windowHeight, 
     glMultMatrixf(view);
     glTranslatef(-camX, -camY, -camZ);
     
-    // Draw stars in the background first
+    // Draw background stars
     drawStars();
     
-    // Draw the Rubik's cube
+    // Draw all 27 cubies (3x3x3 grid)
     const auto& faces = cube.getFaces();
-    float cubieSize = 0.95f; // Slightly larger cubies for better visibility
+    float cubieSize = 0.95f;
     float spacing = 1.0f;
-    
-    // Draw each of the 27 cubies (3x3x3)
     for (int x = -1; x <= 1; x++) {
         for (int y = -1; y <= 1; y++) {
             for (int z = -1; z <= 1; z++) {
@@ -285,6 +289,7 @@ void Renderer::render(const RubikCube& cube, int windowWidth, int windowHeight, 
     }
 }
 
+// Draw a single cubie with appropriate colors and rotation animation
 void Renderer::drawCubie(float x, float y, float z, float size, const RubikCube& cube, int cubieX, int cubieY, int cubieZ, const AnimationState& anim) {
     const auto& faces = cube.getFaces();
     bool isRotating = false;
@@ -374,10 +379,7 @@ void Renderer::drawCubie(float x, float y, float z, float size, const RubikCube&
         glTranslatef(x, y, z);
     }
     
-    // Draw cubie at origin (we've already translated)
-    // Draw all 6 faces of the cubie with appropriate colors
-    // Each face shows the color from the corresponding Rubik's cube face
-    
+    // Draw all 6 faces of the cubie with colors from cube state
     // Right face (+X) - Red
     int row = 1 - cubieY;
     int col = 1 - cubieZ;
@@ -408,12 +410,13 @@ void Renderer::drawCubie(float x, float y, float z, float size, const RubikCube&
     col = 1 - cubieX;
     drawFace(0, 0, 0, size, 5, faces[BACK][row][col]);
     
-    // Draw cube edges
+    // Draw black edges around cubie
     drawCube(0, 0, 0, size);
     
     glPopMatrix();
 }
 
+// Handle mouse drag for camera rotation
 void Renderer::handleMouseDrag(int deltaX, int deltaY) {
     cameraAngleY += deltaX * 0.5f;
     cameraAngleX += deltaY * 0.5f;
@@ -422,11 +425,13 @@ void Renderer::handleMouseDrag(int deltaX, int deltaY) {
     cameraAngleX = std::max(-89.0f, std::min(89.0f, cameraAngleX));
 }
 
+// Handle mouse wheel for zoom in/out
 void Renderer::handleMouseWheel(int delta) {
     cameraDistance += delta * 0.2f;
     cameraDistance = std::max(3.0f, std::min(15.0f, cameraDistance));
 }
 
+// Reset camera to default position
 void Renderer::resetCamera() {
     cameraAngleX = 30.0f;
     cameraAngleY = 45.0f;
