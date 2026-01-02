@@ -1,6 +1,6 @@
-<img width="1082" height="759" alt="R" src="R.png" />
-
 <br>
+
+# Prerequisites
 
 ### Install
 
@@ -42,30 +42,7 @@ cmake --build . --config Release
 
 <br>
 
-# Game Rules
-
-### Controls
-
-**Camera Movement:**
-- **Mouse Drag**: Rotate camera around the cube
-- **Mouse Wheel**: Zoom in/out
-
-**Cube Rotation:**
-- **Q/W/E/R/T/Y**: Rotate faces clockwise
-  - Q: Right face
-  - W: Left face
-  - E: Up face
-  - R: Down face
-  - T: Front face
-  - Y: Back face
-- **Shift + Q/W/E/R/T/Y**: Rotate faces counter-clockwise
-
-**Game Actions:**
-- **S**: Scramble the cube
-- **Space**: Reset cube to solved state
-- **I**: Toggle instructions display
-
-### Victory
+# Victory
 
 Rotating faces until all 6 sides have same color.
 
@@ -74,22 +51,21 @@ Rotating faces until all 6 sides have same color.
 # History
 
 ### Invention (1974)
-- **Ernő Rubik**: Hungarian sculptor and professor of architecture invented the cube in 1974
-- **Original Purpose**: Created as a teaching tool to help students understand 3D spatial relationships
-- **First Name**: Originally called the "Magic Cube" (Bűvös kocka in Hungarian)
-- **Patent**: Rubik applied for a Hungarian patent in 1975
+- **Ernő Rubik**: Hungarian sculptor and professor of architecture invented the cube in 1974.
+- **Original Purpose**: Created as a teaching tool to help students understand 3D spatial relationships.
+- **First Name**: Originally called the "Magic Cube" (Bűvös kocka in Hungarian).
+- **Patent**: Rubik applied for a Hungarian patent in 1975.
 
 ### Modern (1980s-Present)
-- **International Release**: Licensed to Ideal Toy Corp. in 1980, renamed "Rubik's Cube"
-- **Worldwide Phenomenon**: Over 100 million cubes sold in the first two years
-- **Algorithms**: Development of advanced solving methods (CFOP, Roux, ZZ, Petrus)
-- **Digital Versions**: Transition to computer simulations and virtual reality implementations
+- **International Release**: Licensed to Ideal Toy Corp. in 1980, renamed "Rubik's Cube".
+- **Worldwide Phenomenon**: Over 100 million cubes sold in the first two years.
+- **Algorithms**: Development of advanced solving methods (CFOP, Roux, ZZ, Petrus).
+- **Digital Versions**: Transition to computer simulations and virtual reality implementations.
 
 ### Logos
 
-- **Permutations**: The cube has 43,252,003,274,489,856,000 (43 quintillion) possible configurations
-- **God's Number**: Proven in 2010 that any scrambled cube can be solved in 20 moves or fewer
-- **Group Theory**: The cube's mechanics are studied in abstract algebra and group theory
+- **Permutations**: The cube has 43,252,003,274,489,856,000 (43 quintillion) possible configurations.
+- **God's Number**: Proven in 2010 that any scrambled cube can be solved in 20 moves or fewer.
 
 <br>
 
