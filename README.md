@@ -63,9 +63,9 @@
 
 ## Debug
 
-**Root cause:** Crashes were access violations (0xC0000005) when drawing the inner 3×3 Rubik cube, inside `drawCubieRubik` → `drawFaceRubik`, around the first `glBegin`/immediate-mode OpenGL calls.
+**Cause:** Crashes were access violations (0xC0000005) when drawing the inner 3×3 Rubik cube, inside `drawCubieRubik` → `drawFaceRubik`, around the first `glBegin`/immediate-mode OpenGL calls.
 
-**Contributing factors:**
+**Factors:**
 - **OpenGL state** – Inner cube drawn after outer tesseract (which uses blending). Some drivers misbehave when switching from blended to opaque immediate-mode drawing.
 - **SFML + OpenGL** – `pushGLStates`/`popGLStates` and `display` can change or deactivate the OpenGL context between frames.
 - **Driver behavior** – Some Windows OpenGL drivers are sensitive to `glBegin`/`glVertex` when there are pending commands or when GL state (blending, materials) is in a certain configuration.
