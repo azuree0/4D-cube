@@ -1,3 +1,5 @@
+<img width="694" height="495" alt="T" src="https://github.com/user-attachments/assets/c5b8a018-ed4e-40d0-9447-5cb5f1490c7c" />
+
 # Prior
 
 ## Install
@@ -58,22 +60,6 @@
 │ • 3D camera (drag/zoom) on projected result                     │
 └─────────────────────────────────────────────────────────────────┘
 ```
-
-## Debug
-
-**Root cause:** Crashes were access violations (0xC0000005) when drawing the inner 3×3 Rubik cube, inside `drawCubieRubik` → `drawFaceRubik`, around the first `glBegin`/immediate-mode OpenGL calls.
-
-**Contributing factors:**
-- **OpenGL state** – Inner cube drawn after outer tesseract (which uses blending). Some drivers misbehave when switching from blended to opaque immediate-mode drawing.
-- **SFML + OpenGL** – `pushGLStates`/`popGLStates` and `display` can change or deactivate the OpenGL context between frames.
-- **Driver behavior** – Some Windows OpenGL drivers are sensitive to `glBegin`/`glVertex` when there are pending commands or when GL state (blending, materials) is in a certain configuration.
-
-**Solution:**
-- `glFlush()` before `glBegin` – Flushes pending GL commands before starting a new primitive batch.
-- `GL_TRIANGLES` instead of `GL_QUADS` – Compatibility with drivers that mishandle `GL_QUADS`.
-- **Draw order** – Draw inner cube before outer tesseract (edges and vertices), so it renders before any blending.
-- `glPushAttrib`/`glPopAttrib` – Saves/restores GL state around inner cube; explicitly disables blending.
-- `window.setActive(true)` before render – Ensures OpenGL context is active before each frame’s GL calls.
 
 # History
 
