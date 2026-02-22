@@ -35,3 +35,6 @@ cmake_install.cmake
 .DS_Store
 Thumbs.db
 
+# Debug logs
+debug-*.log
+

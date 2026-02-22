@@ -1,5 +1,5 @@
 // Rubik's Cube Logic Header
-// Defines the cube data structure and rotation operations
+// 3x3x3 cube for inner tesseract
 
 #ifndef RUBIK_CUBE_H
 #define RUBIK_CUBE_H
@@ -27,55 +27,22 @@ enum FaceIndex {
     BACK = 5
 };
 
-// Rubik's Cube class - manages cube state and rotations
 class RubikCube {
 private:
-    // 6 faces, each is 3x3 grid of colors
     std::vector<std::vector<std::vector<int>>> faces;
-    
-    // Helper functions for face and edge rotations
     void rotateFaceClockwise(int face);
     void rotateFaceCounterClockwise(int face);
-    void rotateRow(int row, bool clockwise);
-    void rotateColumn(int col, bool clockwise);
-    void rotateDepth(int depth, bool clockwise);
-    
+
 public:
-    RubikCube();  // Constructor - initializes solved cube
-    
-    // Reset cube to solved state
+    RubikCube();
     void reset();
-    
-    // Face rotations (clockwise): R, L, U, D, F, B
-    void rotateR();  // Right face clockwise
-    void rotateL();  // Left face clockwise
-    void rotateU();  // Up face clockwise
-    void rotateD();  // Down face clockwise
-    void rotateF();  // Front face clockwise
-    void rotateB();  // Back face clockwise
-    
-    void rotateRPrime();  // Right face counter-clockwise
-    void rotateLPrime();  // Left face counter-clockwise
-    void rotateUPrime();  // Up face counter-clockwise
-    void rotateDPrime();  // Down face counter-clockwise
-    void rotateFPrime();  // Front face counter-clockwise
-    void rotateBPrime();  // Back face counter-clockwise
-    
-    // Apply move from string notation (e.g., "R", "R'", "U", "U'")
+    void rotateR(); void rotateL(); void rotateU(); void rotateD(); void rotateF(); void rotateB();
+    void rotateRPrime(); void rotateLPrime(); void rotateUPrime(); void rotateDPrime(); void rotateFPrime(); void rotateBPrime();
     bool applyMove(const std::string& move);
-    
-    // Scramble the cube
     void scramble(int numMoves = 25);
-    
-    // Check if cube is solved
     bool isSolved() const;
-    
-    // Get face color at position (face, row, col)
     int getColor(int face, int row, int col) const;
-    
-    // Get all faces (for rendering)
     const std::vector<std::vector<std::vector<int>>>& getFaces() const;
 };
 
 #endif // RUBIK_CUBE_H
-

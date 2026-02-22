@@ -1,205 +1,206 @@
 // Main Application - SFML window and game loop
-// Handles user input, animations, and rendering coordination
+// 4D Tesseract puzzle with plane/layer controls (SFML 3 compatible)
 
 #include <SFML/Graphics.hpp>
 #include <SFML/OpenGL.hpp>
 #include <iostream>
+#include <optional>
+#include <exception>
 #include "rubik_cube.h"
 #include "renderer.h"
 
 constexpr int WINDOW_WIDTH = 1400;
 constexpr int WINDOW_HEIGHT = 1000;
 
-// Main game class - manages cube, renderer, UI, and input
-class RubikGame {
+class TesseractGame {
 private:
-    RubikCube cube;
+    TesseractPuzzle puzzle;
+    RubikCube innerCube;
     Renderer renderer;
     sf::Font font;
-    sf::Text statusText;
-    sf::Text instructionText;
+    std::optional<sf::Text> statusText;
+    std::optional<sf::Text> instructionText;
     bool isDragging;
     sf::Vector2i lastMousePos;
     bool showInstructions;
     AnimationState animation;
+    RubikAnimState rubikAnim;
     sf::Clock animationClock;
-    const float ANIMATION_SPEED = 300.0f; // degrees per second
-    
+    const float ANIMATION_SPEED = 300.0f;
+    int currentLayer_;
+
     bool loadFont() {
-        if (!font.loadFromFile("C:/Windows/Fonts/arial.ttf")) {
-            if (!font.loadFromFile("C:/Windows/Fonts/calibri.ttf")) {
-                std::cerr << "Warning: Could not load font. Text may not display correctly." << std::endl;
-                return false;
-            }
-        }
-        return true;
+        if (font.openFromFile("C:/Windows/Fonts/arial.ttf"))
+            return true;
+        if (font.openFromFile("C:/Windows/Fonts/calibri.ttf"))
+            return true;
+        std::cerr << "Warning: Could not load font. Text may not display correctly." << std::endl;
+        return false;
     }
 
- // In game text   
     void setupUI() {
-        if (font.getInfo().family != "") {
-            statusText.setFont(font);
-            statusText.setCharacterSize(24);
-            statusText.setFillColor(sf::Color::White);
-            statusText.setPosition(10, 10);
-            
-            instructionText.setFont(font);
-            instructionText.setCharacterSize(18);
-            instructionText.setFillColor(sf::Color::White);
-            instructionText.setPosition(10, 50);
-            instructionText.setString(
-                "Mouse Drag: Rotate camera\n"
-                "Mouse Wheel: Zoom in/out\n"
-                  "\n"
-                "Q/W/E/R/T/Y: Rotate clockwise\n"
-                "Shift+Q/W/E/R/T/Y: Rotate counter-clockwise\n"
-                  "\n"
-                "S: Scramble\n"
-                "Space: Reset\n"
-                "I: Toggle UI"
-            );
+        if (!font.getInfo().family.empty()) {
+            statusText.emplace(font, "", 24);
+            statusText->setFillColor(sf::Color::White);
+            statusText->setPosition({10.f, 10.f});
+
+            instructionText.emplace(font,
+                "Mouse Drag: Rotate camera | Wheel: Zoom\n"
+                "\n"
+                "4D cube: Q/W/E/R/T/Y\n"
+                "Shift + key: Counter-clockwise\n"
+                "\n"
+                "Space: Reset | I: Toggle UI",
+                18);
+            instructionText->setFillColor(sf::Color::White);
+            instructionText->setPosition({10.f, 50.f});
         }
         updateUI();
     }
 
-// Update UI    
     void updateUI() {
-        if (font.getInfo().family == "") return;
-        
-        std::string status = "";
-        if (cube.isSolved()) {
-            status += "Solved";
-        }
-        statusText.setString(status);
+        if (!statusText) return;
+        std::string status = puzzle.isSolved() ? "Solved " : "";
+        statusText->setString(status);
     }
-    
-// Constructor, sets up game's initial state.
+
 public:
-    RubikGame() : isDragging(false), showInstructions(true) {
+    TesseractGame() : isDragging(false), showInstructions(true), currentLayer_(0) {
         loadFont();
         setupUI();
         renderer.initialize();
-        cube.scramble();
+        puzzle.scramble();
         updateUI();
     }
 
-// Animation methods    
     void updateAnimation(float deltaTime) {
-        if (!animation.isAnimating) return;
-        
         float angleDelta = ANIMATION_SPEED * deltaTime;
+        if (rubikAnim.isAnimating) {
+            if (rubikAnim.clockwise) {
+                rubikAnim.currentAngle += angleDelta;
+                if (rubikAnim.currentAngle >= rubikAnim.targetAngle) {
+                    rubikAnim.currentAngle = rubikAnim.targetAngle;
+                    rubikAnim.isAnimating = false;
+                    applyRubikRotation();
+                }
+            } else {
+                rubikAnim.currentAngle -= angleDelta;
+                if (rubikAnim.currentAngle <= rubikAnim.targetAngle) {
+                    rubikAnim.currentAngle = rubikAnim.targetAngle;
+                    rubikAnim.isAnimating = false;
+                    applyRubikRotation();
+                }
+            }
+            return;
+        }
+        if (!animation.isAnimating) return;
         if (animation.clockwise) {
             animation.currentAngle += angleDelta;
             if (animation.currentAngle >= animation.targetAngle) {
                 animation.currentAngle = animation.targetAngle;
                 animation.isAnimating = false;
-                // Apply the actual rotation to the cube
-                applyRotationToCube();
+                applyRotationToPuzzle();
             }
         } else {
             animation.currentAngle -= angleDelta;
             if (animation.currentAngle <= animation.targetAngle) {
                 animation.currentAngle = animation.targetAngle;
                 animation.isAnimating = false;
-                // Apply the actual rotation to the cube
-                applyRotationToCube();
+                applyRotationToPuzzle();
             }
         }
     }
-    
-    void startAnimation(int face, bool clockwise) {
-        if (animation.isAnimating) return; // Don't start new animation if one is in progress
-        
-        animation.face = face;
+
+    void startRubikAnimation(int face, bool clockwise) {
+        if (rubikAnim.isAnimating || animation.isAnimating) return;
+        rubikAnim.face = face;
+        rubikAnim.clockwise = clockwise;
+        rubikAnim.currentAngle = 0.0f;
+        rubikAnim.targetAngle = clockwise ? 90.0f : -90.0f;
+        rubikAnim.isAnimating = true;
+    }
+
+    void applyRubikRotation() {
+        if (rubikAnim.face >= 0) {
+            switch (rubikAnim.face) {
+                case RIGHT: rubikAnim.clockwise ? innerCube.rotateR() : innerCube.rotateRPrime(); break;
+                case LEFT:  rubikAnim.clockwise ? innerCube.rotateL() : innerCube.rotateLPrime(); break;
+                case UP:    rubikAnim.clockwise ? innerCube.rotateU() : innerCube.rotateUPrime(); break;
+                case DOWN:  rubikAnim.clockwise ? innerCube.rotateD() : innerCube.rotateDPrime(); break;
+                case FRONT: rubikAnim.clockwise ? innerCube.rotateF() : innerCube.rotateFPrime(); break;
+                case BACK:  rubikAnim.clockwise ? innerCube.rotateB() : innerCube.rotateBPrime(); break;
+            }
+            renderer.commitOuterRubikRotation(rubikAnim.face, rubikAnim.clockwise);
+        }
+        updateUI();
+    }
+
+    void startAnimation(int plane, int layer, bool clockwise) {
+        if (animation.isAnimating || rubikAnim.isAnimating) return;
+        animation.plane = plane;
+        animation.layer = layer;
         animation.clockwise = clockwise;
         animation.currentAngle = 0.0f;
         animation.targetAngle = clockwise ? 90.0f : -90.0f;
         animation.isAnimating = true;
-        animationClock.restart();
     }
-    
-    void applyRotationToCube() {
-        switch (animation.face) {
-            case RIGHT:
-                if (animation.clockwise) cube.rotateR();
-                else cube.rotateRPrime();
-                break;
-            case LEFT:
-                if (animation.clockwise) cube.rotateL();
-                else cube.rotateLPrime();
-                break;
-            case UP:
-                if (animation.clockwise) cube.rotateU();
-                else cube.rotateUPrime();
-                break;
-            case DOWN:
-                if (animation.clockwise) cube.rotateD();
-                else cube.rotateDPrime();
-                break;
-            case FRONT:
-                if (animation.clockwise) cube.rotateF();
-                else cube.rotateFPrime();
-                break;
-            case BACK:
-                if (animation.clockwise) cube.rotateB();
-                else cube.rotateBPrime();
-                break;
+
+    void applyRotationToPuzzle() {
+        if (animation.plane >= 0 && animation.layer >= 0) {
+            puzzle.rotateSlice(animation.plane, animation.layer, animation.clockwise);
         }
         updateUI();
     }
-    
-// Input handling
+
     void handleKeyPress(sf::Keyboard::Key key) {
-        if (animation.isAnimating) return; // Ignore input during animation
-        
-        bool shift = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) || 
-                     sf::Keyboard::isKeyPressed(sf::Keyboard::RShift);
-        
+        if (key == sf::Keyboard::Key::LBracket) { renderer.rotate4DView(-5.0f); return; }
+        if (key == sf::Keyboard::Key::RBracket) { renderer.rotate4DView(5.0f); return; }
+        if (animation.isAnimating || rubikAnim.isAnimating) return;
+        bool shift = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LShift) ||
+                     sf::Keyboard::isKeyPressed(sf::Keyboard::Key::RShift);
+
         switch (key) {
-            case sf::Keyboard::Q:
-                startAnimation(RIGHT, !shift);
-                break;
-            case sf::Keyboard::W:
-                startAnimation(LEFT, !shift);
-                break;
-            case sf::Keyboard::E:
-                startAnimation(UP, !shift);
-                break;
-            case sf::Keyboard::R:
-                startAnimation(DOWN, !shift);
-                break;
-            case sf::Keyboard::T:
-                startAnimation(FRONT, !shift);
-                break;
-            case sf::Keyboard::Y:
-                startAnimation(BACK, !shift);
-                break;
-            case sf::Keyboard::S:
-                cube.scramble();
-                updateUI();
-                break;
-            case sf::Keyboard::Space:
-                cube.reset();
+            case sf::Keyboard::Key::Q: startRubikAnimation(RIGHT, !shift); break;
+            case sf::Keyboard::Key::W: startRubikAnimation(LEFT, !shift); break;
+            case sf::Keyboard::Key::E: startRubikAnimation(UP, !shift); break;
+            case sf::Keyboard::Key::R: startRubikAnimation(DOWN, !shift); break;
+            case sf::Keyboard::Key::T: startRubikAnimation(FRONT, !shift); break;
+            case sf::Keyboard::Key::Y: startRubikAnimation(BACK, !shift); break;
+            case sf::Keyboard::Key::Z: startAnimation(PLANE_XY, currentLayer_, !shift); break;
+            case sf::Keyboard::Key::X: startAnimation(PLANE_XZ, currentLayer_, !shift); break;
+            case sf::Keyboard::Key::C: startAnimation(PLANE_XW, currentLayer_, !shift); break;
+            case sf::Keyboard::Key::V: startAnimation(PLANE_YZ, currentLayer_, !shift); break;
+            case sf::Keyboard::Key::B: startAnimation(PLANE_YW, currentLayer_, !shift); break;
+            case sf::Keyboard::Key::N: startAnimation(PLANE_ZW, currentLayer_, !shift); break;
+            case sf::Keyboard::Key::Num1: currentLayer_ = 0; updateUI(); break;
+            case sf::Keyboard::Key::Num2: currentLayer_ = 1; updateUI(); break;
+            case sf::Keyboard::Key::Num3: currentLayer_ = 2; updateUI(); break;
+            case sf::Keyboard::Key::Num4: currentLayer_ = 3; updateUI(); break;
+            case sf::Keyboard::Key::Space:
+                puzzle.reset();
+                innerCube.reset();
+                renderer.resetOuterPositions();
                 animation.isAnimating = false;
+                rubikAnim.isAnimating = false;
                 updateUI();
                 break;
-            case sf::Keyboard::I:
+            case sf::Keyboard::Key::I:
                 showInstructions = !showInstructions;
                 break;
             default:
                 break;
         }
     }
-    
+
     void handleMouseButtonPressed(sf::Vector2i mousePos) {
         isDragging = true;
         lastMousePos = mousePos;
     }
-    
+
     void handleMouseButtonReleased() {
         isDragging = false;
     }
-    
+
     void handleMouseMove(sf::Vector2i mousePos) {
         if (isDragging) {
             int deltaX = mousePos.x - lastMousePos.x;
@@ -208,86 +209,99 @@ public:
             lastMousePos = mousePos;
         }
     }
-    
+
     void handleMouseWheel(int delta) {
         renderer.handleMouseWheel(delta);
     }
-    
-    // Render 3D cube and 2D UI overlay
+
     void render(sf::RenderWindow& window) {
-        // Render 3D cube using OpenGL
-        renderer.render(cube, window.getSize().x, window.getSize().y, animation);
-        
-        // Switch to SFML 2D rendering for UI text
+        if (!window.setActive(true)) return;  // Ensure OpenGL context is active before GL calls
+        renderer.render(puzzle, &innerCube, static_cast<int>(window.getSize().x), static_cast<int>(window.getSize().y), animation, rubikAnim);
         window.pushGLStates();
-        
-        if (font.getInfo().family != "") {
-            window.draw(statusText);
-            if (showInstructions) {
-                window.draw(instructionText);
-            }
+        if (statusText) {
+            window.draw(*statusText);
+            if (showInstructions && instructionText) window.draw(*instructionText);
         }
-        
         window.popGLStates();
         window.display();
     }
 };
 
-// Main entry point - initializes window and runs game loop
 int main() {
-    // Configure OpenGL settings
+    try {
     sf::ContextSettings settings;
     settings.depthBits = 24;
     settings.stencilBits = 8;
-    settings.antialiasingLevel = 4;
+    settings.antiAliasingLevel = 0;  // 4 can fail on some GPUs; 0 is more compatible
     settings.majorVersion = 2;
     settings.minorVersion = 1;
-    
-    // In game, create SFML window with OpenGL context.
-    sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), 
-                           "Rubik's Cube", 
-                           sf::Style::Default, 
+
+    sf::RenderWindow window(sf::VideoMode({WINDOW_WIDTH, WINDOW_HEIGHT}),
+                           "Tesseract",
+                           sf::Style::Default,
+                           sf::State::Windowed,
                            settings);
+    if (!window.isOpen()) {
+        std::cerr << "Failed to create window." << std::endl;
+        return 1;
+    }
     window.setFramerateLimit(60);
     window.setVerticalSyncEnabled(true);
-    window.setActive(true);
-    
-    RubikGame game;
+    if (!window.setActive(true)) {
+        std::cerr << "Failed to activate OpenGL context." << std::endl;
+        return 1;
+    }
+
+    TesseractGame game;
     sf::Clock frameClock;
-    
-    // Main game loop - handle events and render
+
     while (window.isOpen()) {
         float deltaTime = frameClock.restart().asSeconds();
-        
-        sf::Event event;
-        while (window.pollEvent(event)) {
-            if (event.type == sf::Event::Closed) {
+
+        while (std::optional event = window.pollEvent()) {
+            if (event->is<sf::Event::Closed>()) {
                 window.close();
-            } else if (event.type == sf::Event::KeyPressed) {
-                game.handleKeyPress(event.key.code);
-            } else if (event.type == sf::Event::MouseButtonPressed) {
-                if (event.mouseButton.button == sf::Mouse::Left) {
-                    game.handleMouseButtonPressed(sf::Vector2i(event.mouseButton.x, event.mouseButton.y));
+            } else if (event->is<sf::Event::KeyPressed>()) {
+                if (const auto* k = event->getIf<sf::Event::KeyPressed>()) {
+                    game.handleKeyPress(k->code);
                 }
-            } else if (event.type == sf::Event::MouseButtonReleased) {
-                if (event.mouseButton.button == sf::Mouse::Left) {
-                    game.handleMouseButtonReleased();
+            } else if (event->is<sf::Event::MouseButtonPressed>()) {
+                if (const auto* m = event->getIf<sf::Event::MouseButtonPressed>()) {
+                    if (m->button == sf::Mouse::Button::Left) {
+                        game.handleMouseButtonPressed(m->position);
+                    }
                 }
-            } else if (event.type == sf::Event::MouseMoved) {
-                game.handleMouseMove(sf::Vector2i(event.mouseMove.x, event.mouseMove.y));
-            } else if (event.type == sf::Event::MouseWheelScrolled) {
-                game.handleMouseWheel(static_cast<int>(event.mouseWheelScroll.delta));
-            } else if (event.type == sf::Event::Resized) {
-                glViewport(0, 0, event.size.width, event.size.height);
+            } else if (event->is<sf::Event::MouseButtonReleased>()) {
+                if (const auto* m = event->getIf<sf::Event::MouseButtonReleased>()) {
+                    if (m->button == sf::Mouse::Button::Left) {
+                        game.handleMouseButtonReleased();
+                    }
+                }
+            } else if (event->is<sf::Event::MouseMoved>()) {
+                if (const auto* m = event->getIf<sf::Event::MouseMoved>()) {
+                    game.handleMouseMove(m->position);
+                }
+            } else if (event->is<sf::Event::MouseWheelScrolled>()) {
+                if (const auto* m = event->getIf<sf::Event::MouseWheelScrolled>()) {
+                    game.handleMouseWheel(static_cast<int>(m->delta));
+                }
+            } else if (event->is<sf::Event::Resized>()) {
+                if (const auto* r = event->getIf<sf::Event::Resized>()) {
+                    glViewport(0, 0, static_cast<GLsizei>(r->size.x), static_cast<GLsizei>(r->size.y));
+                }
             }
         }
-        
-        // Update animation
+
         game.updateAnimation(deltaTime);
-        
         game.render(window);
     }
-    
-    return 0;
-}
 
+    return 0;
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        return 1;
+    } catch (...) {
+        std::cerr << "Unknown error." << std::endl;
+        return 1;
+    }
+}

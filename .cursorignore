@@ -1,0 +1,88 @@
+# Build outputs
+build/
+cmake-build-*/
+out/
+target/
+bin/
+obj/
+Debug/
+Release/
+x64/
+x86/
+.vs/
+.vscode/
+
+# Compiled files
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+*.lib
+*.pdb
+*.ilk
+*.exp
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+!CMakeLists.txt
+
+# IDE files
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.vcxproj.user
+*.vcxproj.filters
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+*.tlog
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.cache
+
+# Version control (if not already in .gitignore)
+.git/
+.svn/
+.hg/
+
+# Test coverage
+coverage/
+*.gcda
+*.gcno
+*.gcov
+
+# Documentation builds (if generated)
+docs/_build/
+docs/html/
+docs/latex/
+
+# Large data files
+*.csv
+*.sql
+*.dump
+*.zip
+*.tar.gz

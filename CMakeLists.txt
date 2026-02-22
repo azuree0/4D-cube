@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(RubikGame)
+project(Tesseract)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -10,7 +10,7 @@ if(SFML_ROOT)
     set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${SFML_ROOT})
 endif()
 
-find_package(SFML 2.5 COMPONENTS system window graphics REQUIRED)
+find_package(SFML 3.0 COMPONENTS System Window Graphics REQUIRED)
 
 if(NOT SFML_FOUND)
     message(FATAL_ERROR 
@@ -66,56 +66,70 @@ if(NOT OPENGL_LIBRARIES)
     set(OPENGL_LIBRARIES "")
 endif()
 
-# Source files
+# Executable (output binary: run)
 set(SOURCES
     main.cpp
+    tesseract_model.cpp
     rubik_cube.cpp
+    math_4d.cpp
+    projection_4d.cpp
     renderer.cpp
 )
 
 set(HEADERS
+    tesseract_model.h
     rubik_cube.h
+    math_4d.h
+    projection_4d.h
     renderer.h
 )
 
-# Create executable
-add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
+add_executable(run ${SOURCES} ${HEADERS})
+
+# Smoke tests
+add_executable(test_tesseract
+    test_tesseract.cpp
+    tesseract_model.cpp
+    math_4d.cpp
+    projection_4d.cpp
+)
+target_include_directories(test_tesseract PRIVATE ${CMAKE_SOURCE_DIR})
 
 # Set include directories
 if(SFML_INCLUDE_DIRS)
-    target_include_directories(${PROJECT_NAME} PRIVATE ${SFML_INCLUDE_DIRS})
+    target_include_directories(run PRIVATE ${SFML_INCLUDE_DIRS})
 endif()
 
 if(OPENGL_INCLUDE_DIRS)
-    target_include_directories(${PROJECT_NAME} PRIVATE ${OPENGL_INCLUDE_DIRS})
+    target_include_directories(run PRIVATE ${OPENGL_INCLUDE_DIRS})
 endif()
 
 # Link SFML
 if(TARGET SFML::System)
-    target_link_libraries(${PROJECT_NAME} 
+    target_link_libraries(run
         SFML::System
         SFML::Window
         SFML::Graphics
     )
 elseif(SFML_LIBRARIES)
-    target_link_libraries(${PROJECT_NAME} 
+    target_link_libraries(run
         ${SFML_LIBRARIES}
     )
     if(SFML_INCLUDE_DIR)
-        target_include_directories(${PROJECT_NAME} PRIVATE ${SFML_INCLUDE_DIR})
+        target_include_directories(run PRIVATE ${SFML_INCLUDE_DIR})
     endif()
 elseif(SFML_ROOT)
     # Manual linking if targets aren't available but SFML_ROOT is set
-    target_include_directories(${PROJECT_NAME} PRIVATE "${SFML_ROOT}/include")
+    target_include_directories(run PRIVATE "${SFML_ROOT}/include")
     if(WIN32)
         if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-            target_link_libraries(${PROJECT_NAME} 
+            target_link_libraries(run
                 "${SFML_ROOT}/lib/sfml-graphics-d.lib"
                 "${SFML_ROOT}/lib/sfml-window-d.lib"
                 "${SFML_ROOT}/lib/sfml-system-d.lib"
             )
         else()
-            target_link_libraries(${PROJECT_NAME} 
+            target_link_libraries(run
                 "${SFML_ROOT}/lib/sfml-graphics.lib"
                 "${SFML_ROOT}/lib/sfml-window.lib"
                 "${SFML_ROOT}/lib/sfml-system.lib"
@@ -126,13 +140,12 @@ endif()
 
 # Link OpenGL
 if(OPENGL_LIBRARIES)
-    target_link_libraries(${PROJECT_NAME} ${OPENGL_LIBRARIES})
+    target_link_libraries(run ${OPENGL_LIBRARIES})
 endif()
 
 # Windows-specific settings
 if(WIN32)
-    set_target_properties(${PROJECT_NAME} PROPERTIES
-        WIN32_EXECUTABLE FALSE
-    )
+    set_target_properties(run PROPERTIES WIN32_EXECUTABLE FALSE)
+    set_target_properties(test_tesseract PROPERTIES WIN32_EXECUTABLE FALSE)
 endif()
 
