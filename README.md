@@ -7,7 +7,6 @@
 - **CMake** 3.15 or later — https://cmake.org/download/
 - **C++17 compiler** — https://visualstudio.microsoft.com/downloads/
 - **SFML 3.0** or later — https://www.sfml-dev.org/download.php
-  - Extract to a location (e.g., `C:/SFML`)
 - **OpenGL** support (included with graphics drivers)
 
 ## Build
@@ -15,11 +14,10 @@
    ```powershell
    mkdir build
    cd build
-   cmake .. -DSFML_ROOT=C:/SFML #Tell CMake, where SFML is installed
-   cmake --build . --config Release #creates Release\ and run.exe
-   copy C:\SFML\SFML-3.0.2\bin\*.dll .\Release\ #copy DLLs into created folder
+   cmake .. -DSFML_ROOT=C:/SFML 
+   cmake --build . --config Release 
+   copy C:\SFML\SFML-3.0.2\bin\*.dll .\Release\ 
    ```
-   (Copy SFML DLLs once per build folder.)
 
 ## Run
 
