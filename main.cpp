@@ -3,6 +3,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <SFML/OpenGL.hpp>
+#include <SFML/System.hpp>
 #include <iostream>
 #include <optional>
 #include <exception>
@@ -215,14 +216,18 @@ public:
     }
 
     void render(sf::RenderWindow& window) {
-        if (!window.setActive(true)) return;  // Ensure OpenGL context is active before GL calls
-        renderer.render(puzzle, &innerCube, static_cast<int>(window.getSize().x), static_cast<int>(window.getSize().y), animation, rubikAnim);
-        window.pushGLStates();
-        if (statusText) {
-            window.draw(*statusText);
-            if (showInstructions && instructionText) window.draw(*instructionText);
+        // Always call display() even when setActive fails; skipping it can leave the window
+        // stuck or trigger spurious close on some platforms when the GL context is lost.
+        const bool glOk = window.setActive(true);
+        if (glOk) {
+            renderer.render(puzzle, &innerCube, static_cast<int>(window.getSize().x), static_cast<int>(window.getSize().y), animation, rubikAnim);
+            window.pushGLStates();
+            if (statusText) {
+                window.draw(*statusText);
+                if (showInstructions && instructionText) window.draw(*instructionText);
+            }
+            window.popGLStates();
         }
-        window.popGLStates();
         window.display();
     }
 };
@@ -247,7 +252,15 @@ int main() {
     }
     window.setFramerateLimit(60);
     window.setVerticalSyncEnabled(true);
-    if (!window.setActive(true)) {
+    bool contextOk = false;
+    for (int i = 0; i < 50; ++i) {
+        if (window.setActive(true)) {
+            contextOk = true;
+            break;
+        }
+        sf::sleep(sf::milliseconds(10));
+    }
+    if (!contextOk) {
         std::cerr << "Failed to activate OpenGL context." << std::endl;
         return 1;
     }
